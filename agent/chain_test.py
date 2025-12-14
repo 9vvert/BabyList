@@ -5,7 +5,7 @@ from langchain_core.output_parsers import StrOutputParser
 
 from dotenv import load_dotenv
 from pydantic import SecretStr
-load_dotenv('../../.llm_env')
+load_dotenv('../../..llm_env')
 
 API_KEY : str= os.getenv("MY_OPENAI_API_KEY") or ""
 BASE_URL = os.getenv("MY_OPENAI_API_BASE")

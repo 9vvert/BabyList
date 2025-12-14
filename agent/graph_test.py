@@ -1,7 +1,6 @@
 import os
 from dotenv import load_dotenv
 from pydantic import SecretStr
-from IPython.display import Image, display
 
 from typing import Annotated
 from typing_extensions import TypedDict
@@ -11,10 +10,11 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
+from load_env import *
 
-load_dotenv('../../.llm_env')
-API_KEY : str= os.getenv("MY_OPENAI_API_KEY") or ""
-BASE_URL = os.getenv("MY_OPENAI_API_BASE")
+# load_dotenv('../../../.llm_env')
+# API_KEY : str= os.getenv("MY_OPENAI_API_KEY") or ""
+# BASE_URL = os.getenv("MY_OPENAI_API_BASE")
 
 llm = ChatOpenAI(api_key=SecretStr(API_KEY),  base_url=BASE_URL,  model="gpt-4.1",temperature=0)
 
