@@ -2,6 +2,8 @@ import os
 from dotenv import load_dotenv
 from pydantic import SecretStr
 
+import asyncio
+
 from typing import Annotated
 from typing_extensions import TypedDict
 from langgraph.graph import StateGraph
@@ -29,26 +31,45 @@ graph_builder.set_entry_point("chatbot")
 graph_builder.set_finish_point("chatbot")
 
 # node
-def chatbot(state: State):
-    print(state)
-    return {"messages": [llm.invoke(state["messages"])]}
+async def chatbot(state: State):
+    async for chunk in llm.astream(state["messages"]):
+        yield {"messages": [chunk]}
+
 # The first argument is the unique node name
 # The second argument is the function or object that will be called whenever the node is used.’’’
 graph_builder.add_node("chatbot", chatbot)
 
 graph = graph_builder.compile()
-try:
-    with open("struct.png", "wb") as f:
-        f.write(graph.get_graph().draw_mermaid_png())
-except Exception:
-    print('error')
 
 # Run the chatbot
-while True:
-    user_input = input("User: ")
-    if user_input.lower() in ["quit", "exit", "q"]:
-        print("Goodbye!")
-        break
-    for event in graph.stream({"messages": [("user", user_input)]}):
-        for value in event.values():
-            print("Assistant:", value["messages"][-1].content)
+# while True:
+#     user_input = input("User: ")
+#     if user_input.lower() in ["quit", "exit", "q"]:
+#         print("Goodbye!")
+#         break
+#     for message_chunk, metadata in graph.stream(
+#         {"messages": [("user", user_input)]},
+#         stream_mode="messages"
+#     ):
+#
+#         if message_chunk:
+#             print(message_chunk)
+#         # for value in event.values():
+#         #     print("Assistant:", value["messages"][-1].content)
+
+async def main():
+    while True:
+        user_input = input("\nUser> ")
+        if user_input.lower() in ["quit", "exit", "q"]:
+            print("Goodbye!")
+            break
+
+        async for message_chunk, metadata in graph.astream(
+            {"messages": [("user", user_input)]},
+            stream_mode="messages",
+        ):
+            if message_chunk.content:
+                print(message_chunk.content, end='')
+                # print(message_chunk.content, end="", flush=True)
+
+asyncio.run(main())
